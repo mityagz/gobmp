@@ -76,6 +76,10 @@ func UnmarshalL3VPNNLRI(b []byte, pathID bool, srv6 ...bool) (*base.MPNLRI, erro
 				up.Label = append(up.Label, l)
 				p += 3
 				bos = l.BoS
+				// This is dirty hack was added by Mitya 27.05.2025
+				if l.Value == 0 {
+					bos = true
+				}
 				if srv6Flag {
 					// When srv6Flag is set, it means 3 bytes of label is not really a label
 					// but a part of Prefix SID, as such, BoS does not exists.
