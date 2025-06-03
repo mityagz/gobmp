@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 	"github.com/sbezverk/gobmp/pkg/message"
 	"github.com/sbezverk/gobmp/pkg/parser"
@@ -57,6 +58,11 @@ func (srv *bmpServer) server() {
 func (srv *bmpServer) bmpWorker(client net.Conn) {
 	defer client.Close()
 	var server net.Conn
+	// m
+	var l3p base.L3Pkt
+	raddr := client.RemoteAddr()
+	l3p.SrcIpPort = raddr.String()
+	l3p.SrcIp, l3p.SrcPort, _ = net.SplitHostPort(raddr.String())
 	var err error
 	if srv.intercept {
 		server, err = net.Dial("tcp", ":"+fmt.Sprintf("%d", srv.destinationPort))
@@ -77,7 +83,8 @@ func (srv *bmpServer) bmpWorker(client net.Conn) {
 	parserQueue := make(chan []byte)
 	parsStop := make(chan struct{})
 	// Starting parser per client with dedicated work queue
-	go parser.Parser(parserQueue, producerQueue, parsStop)
+	// m
+	go parser.Parser(l3p, parserQueue, producerQueue, parsStop)
 	defer func() {
 		glog.V(5).Infof("all done with client %+v", client.RemoteAddr())
 		close(parsStop)

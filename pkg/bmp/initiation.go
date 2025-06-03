@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/tools"
 )
 
@@ -14,7 +15,13 @@ type InitiationMessage struct {
 }
 
 // UnmarshalInitiationMessage processes Initiation Message and returns BMPInitiationMessage object
-func UnmarshalInitiationMessage(b []byte) (*InitiationMessage, error) {
+func UnmarshalInitiationMessage(l3p base.L3Pkt, b []byte) (*InitiationMessage, error) {
+	// m
+	brt := base.BmpRouter{SrcIpPort: "", SrcIp: "", SrcPort: "", SysFree: "", SysDescr: "", SysName: "", RouterID: "", NodeID: 0}
+	brt.SrcIpPort = l3p.SrcIpPort
+	brt.SrcIp = l3p.SrcIp
+	brt.SrcPort = l3p.SrcPort
+
 	if glog.V(6) {
 		glog.Infof("BMP Initiation Message Raw: %s", tools.MessageHex(b))
 	}
@@ -43,7 +50,18 @@ func UnmarshalInitiationMessage(b []byte) (*InitiationMessage, error) {
 			Information:       v,
 		})
 		i += 4 + int(l)
+		// m
+		switch t {
+		case 0:
+			brt.SysFree = string(v)
+		case 1:
+			brt.SysDescr = string(v)
+		case 2:
+			brt.SysName = string(v)
+		}
 	}
+	brt.RouterID = "10.229.134.0"
+	base.BmpRtrM[l3p.SrcIpPort] = brt
 
 	return im, nil
 }

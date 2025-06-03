@@ -2,16 +2,18 @@ package parser
 
 import (
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 	"github.com/sbezverk/tools"
 )
 
 // Parser dispatches workers upon request received from the channel
-func Parser(queue chan []byte, producerQueue chan bmp.Message, stop chan struct{}) {
+// m
+func Parser(l3p base.L3Pkt, queue chan []byte, producerQueue chan bmp.Message, stop chan struct{}) {
 	for {
 		select {
 		case msg := <-queue:
-			go parsingWorker(msg, producerQueue)
+			go parsingWorker(l3p, msg, producerQueue)
 		case <-stop:
 			glog.Infof("received interrupt, stopping.")
 			return
@@ -19,7 +21,8 @@ func Parser(queue chan []byte, producerQueue chan bmp.Message, stop chan struct{
 	}
 }
 
-func parsingWorker(b []byte, producerQueue chan bmp.Message) {
+// m
+func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 	perPerHeaderLen := 0
 	var bmpMsg bmp.Message
 	// Loop through all found Common Headers in the slice and process them
@@ -86,7 +89,8 @@ func parsingWorker(b []byte, producerQueue chan bmp.Message) {
 			}
 			p += perPerHeaderLen
 		case bmp.InitiationMsg:
-			if _, err := bmp.UnmarshalInitiationMessage(b[p : p+(int(ch.MessageLength)-bmp.CommonHeaderLength)]); err != nil {
+			// m
+			if _, err := bmp.UnmarshalInitiationMessage(l3p, b[p:p+(int(ch.MessageLength)-bmp.CommonHeaderLength)]); err != nil {
 				glog.Errorf("fail to recover BMP Initiation message with error: %+v", err)
 				return
 			}

@@ -12,6 +12,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/dumper"
 	"github.com/sbezverk/gobmp/pkg/filer"
 	"github.com/sbezverk/gobmp/pkg/gobmpsrv"
@@ -22,16 +23,16 @@ import (
 )
 
 var (
-	dstPort   int
-	srcPort   int
-	perfPort  int
-	kafkaSrv  string
+	dstPort           int
+	srcPort           int
+	perfPort          int
+	kafkaSrv          string
 	kafkaTpRetnTimeMs string // Kafka topic retention time in ms
-	natsSrv   string
-	intercept string
-	splitAF   string
-	dump      string
-	file      string
+	natsSrv           string
+	intercept         string
+	splitAF           string
+	dump              string
+	file              string
 )
 
 func init() {
@@ -82,7 +83,7 @@ func main() {
 		glog.V(5).Infof("NATS publisher has been successfully initialized.")
 	default:
 		kConfig := &kafka.Config{
-			ServerAddress: kafkaSrv,
+			ServerAddress:        kafkaSrv,
 			TopicRetentionTimeMs: kafkaTpRetnTimeMs,
 		}
 		publisher, err = kafka.NewKafkaPublisher(kConfig)
@@ -93,6 +94,8 @@ func main() {
 		glog.V(5).Infof("Kafka publisher has been successfully initialized.")
 	}
 
+	// m
+	base.BmpRtrM = make(map[string]base.BmpRouter)
 	// Initializing bmp server
 	interceptFlag, err := strconv.ParseBool(intercept)
 	if err != nil {

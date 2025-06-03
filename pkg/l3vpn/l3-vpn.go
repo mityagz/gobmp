@@ -117,6 +117,16 @@ func UnmarshalL3VPNNLRI(b []byte, pathID bool, srv6 ...bool) (*base.MPNLRI, erro
 		p += l
 		up.Length = uint8(l * 8)
 		mpnlri.NLRI = append(mpnlri.NLRI, up)
+		// m
+		/*
+			for k, _ := range base.BmpRtrM {
+				glog.Infof("k: %s ", k)
+				glog.Infof("Init RouterID: %s ", base.BmpRtrM[k].RouterID)
+				glog.Infof("Init RouterID: %s ", base.BmpRtrM[k].SysName)
+				glog.Infof("Init RouterID: %s ", base.BmpRtrM[k].SysDescr)
+				glog.Infof("SrcIp: %s ", base.BmpRtrM[k].SrcIp)
+			}
+		*/
 	}
 
 error_handle:
