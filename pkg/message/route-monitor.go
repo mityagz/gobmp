@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bgp"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 )
@@ -46,14 +47,14 @@ func (p *producer) produceRouteMonitorMessage(msg bmp.Message) {
 		if err != nil {
 			glog.Errorf("failed to process MP_REACH_NLRI with error: %+v", err)
 		}
-		p.processMPUpdate(nlri, AddPrefix, msg.PeerHeader, routeMonitorMsg.Update)
+		p.processMPUpdate(*routeMonitorMsg, nlri, AddPrefix, msg.PeerHeader, routeMonitorMsg.Update)
 	case 15:
 		// MP_UNREACH_NLRI
 		nlri, err := bgp.UnmarshalMPUnReachNLRI(routeMonitorMsg.Update.PathAttributes[index].Attribute, p.addPathCapable)
 		if err != nil {
 			glog.Errorf("failed to process MP_UNREACH_NLRI with error: %+v", err)
 		}
-		p.processMPUpdate(nlri, DelPrefix, msg.PeerHeader, routeMonitorMsg.Update)
+		p.processMPUpdate(*routeMonitorMsg, nlri, DelPrefix, msg.PeerHeader, routeMonitorMsg.Update)
 	default:
 		t := bmp.UnicastPrefixMsg
 		if p.splitAF {
@@ -78,7 +79,7 @@ func (p *producer) produceRouteMonitorMessage(msg bmp.Message) {
 		// Loop through and publish all collected messages
 		// m
 		for _, m := range msgs {
-			if err := p.marshalAndPublish(&m, t, []byte(m.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&m, base.BmpRtrM[routeMonitorMsg.L3p.SrcIpPort].RouterID, t, []byte(m.RouterHash), false); err != nil {
 				glog.Errorf("failed to process Unicast Prefix message with error: %+v", err)
 				return
 			}
@@ -86,12 +87,13 @@ func (p *producer) produceRouteMonitorMessage(msg bmp.Message) {
 	}
 }
 
-func (p *producer) marshalAndPublish(msg interface{}, msgType int, hash []byte, debug bool) error {
+// m
+func (p *producer) marshalAndPublish(msg interface{}, rid string, msgType int, hash []byte, debug bool) error {
 	j, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal a message of type %d with error: %+v", msgType, err)
 	}
-	if err := p.publisher.PublishMessage(msgType, hash, j); err != nil {
+	if err := p.publisher.PublishMessage(rid, msgType, hash, j); err != nil {
 		return fmt.Errorf("failed to push a message of type %d to kafka with error: %+v", msgType, err)
 	}
 	if debug {
@@ -100,14 +102,13 @@ func (p *producer) marshalAndPublish(msg interface{}, msgType int, hash []byte, 
 	return nil
 }
 
-// m
 /*
-func (p *producer) marshalAndPublishRid(msg interface{}, rid string, msgType int, hash []byte, debug bool) error {
+func (p *producer) marshalAndPublish(msg interface{}, msgType int, hash []byte, debug bool) error {
 	j, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal a message of type %d with error: %+v", msgType, err)
 	}
-	if err := p.publisher.PublishMessageRid(rid, msgType, hash, j); err != nil {
+	if err := p.publisher.PublishMessage(msgType, hash, j); err != nil {
 		return fmt.Errorf("failed to push a message of type %d to kafka with error: %+v", msgType, err)
 	}
 	if debug {

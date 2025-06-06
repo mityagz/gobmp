@@ -60,7 +60,7 @@ func UnmarshalInitiationMessage(l3p base.L3Pkt, b []byte) (*InitiationMessage, e
 			brt.SysName = string(v)
 		}
 	}
-	brt.RouterID = "10.229.134.0"
+	brt.RouterID = brt.SrcIp + ":" + brt.SysName
 	base.BmpRtrM[l3p.SrcIpPort] = brt
 
 	return im, nil

@@ -77,7 +77,7 @@ type publisher struct {
 	stopCh   chan struct{}
 }
 
-func (p *publisher) PublishMessage(t int, key []byte, msg []byte) error {
+func (p *publisher) PublishMessage(rid string, t int, key []byte, msg []byte) error {
 	switch t {
 	case bmp.PeerStateChangeMsg:
 		return p.produceMessage(PeerTopic, key, msg)

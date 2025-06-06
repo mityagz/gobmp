@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 )
 
@@ -105,7 +106,7 @@ func (p *producer) producePeerMessage(op int, msg bmp.Message) {
 		copy(m.InfoData, peerDownMsg.Data)
 
 	}
-	if err := p.marshalAndPublish(&m, bmp.PeerStateChangeMsg, []byte(m.RouterHash), false); err != nil {
+	if err := p.marshalAndPublish(&m, base.BmpRtrM[msg.L3p.SrcIpPort].RouterID, bmp.PeerStateChangeMsg, []byte(m.RouterHash), false); err != nil {
 		glog.Errorf("failed to process peer message with error: %+v", err)
 		return
 	}

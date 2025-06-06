@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 )
 
@@ -61,7 +62,8 @@ func (p *producer) produceStatsMessage(msg bmp.Message) {
 			glog.Warningf("unprocessed stats type:%v", tlv.InformationType)
 		}
 	}
-	if err := p.marshalAndPublish(&m, bmp.StatsReportMsg, []byte(m.RouterHash), false); err != nil {
+	//m
+	if err := p.marshalAndPublish(&m, base.BmpRtrM[msg.L3p.SrcIpPort].RouterID, bmp.StatsReportMsg, []byte(m.RouterHash), false); err != nil {
 		glog.Errorf("failed to process peer Stats Report message with error: %+v", err)
 		return
 	}

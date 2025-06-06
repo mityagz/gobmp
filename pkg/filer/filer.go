@@ -9,20 +9,22 @@ import (
 
 // MsgOut defines structure of the message stored in the file.
 type MsgOut struct {
-	Type  int    `json:"type,omitempty"`
-	Key   []byte `json:"key,omitempty"`
-	Value []byte `json:"value,omitempty"`
+	Type     int    `json:"type,omitempty"`
+	RouterID string `json:"msg_rid,omitempty"`
+	Key      []byte `json:"key,omitempty"`
+	Value    []byte `json:"value,omitempty"`
 }
 
 type pubfiler struct {
 	file *os.File
 }
 
-func (p *pubfiler) PublishMessage(msgType int, msgHash []byte, msg []byte) error {
+func (p *pubfiler) PublishMessage(rid string, msgType int, msgHash []byte, msg []byte) error {
 	m := MsgOut{
-		Type:  msgType,
-		Key:   msgHash,
-		Value: msg,
+		Type:     msgType,
+		RouterID: rid,
+		Key:      msgHash,
+		Value:    msg,
 	}
 	b, err := json.Marshal(&m)
 	if err != nil {

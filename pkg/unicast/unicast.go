@@ -73,16 +73,25 @@ func UnmarshalLUNLRI(b []byte, pathID bool) (*base.MPNLRI, error) {
 		} else {
 			// Otherwise getting labels
 			up.Label = make([]*base.Label, 0)
+			var l base.Label
 			bos := false
 			for !bos && p < len(b) {
-				l, e := base.MakeLabel(b[p : p+3])
-				if e != nil {
-					err = e
-					goto error_handle
-				}
-				up.Label = append(up.Label, l)
+				// This is dirty hack was added by Mitya 27.05.2025
+				//l, e := base.MakeLabel(b[p : p+3])
+				l.Value = 0
+				/*
+					if e != nil {
+						err = e
+						goto error_handle
+					}
+				*/
+				up.Label = append(up.Label, &l)
 				p += 3
 				bos = l.BoS
+				// This is dirty hack was added by Mitya 27.05.2025
+				if l.Value == 0 {
+					bos = true
+				}
 			}
 		}
 		// Adjusting prefix length to remove bits used by labels each label takes 3 bytes, or 3 bytes

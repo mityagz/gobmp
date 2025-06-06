@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bgp"
 	"github.com/sbezverk/tools"
 )
@@ -11,10 +12,12 @@ import (
 // RouteMonitor defines a structure of BMP Route Monitoring message
 type RouteMonitor struct {
 	Update *bgp.Update
+	L3p    base.L3Pkt
 }
 
 // UnmarshalBMPRouteMonitorMessage builds BMP Route Monitor object
-func UnmarshalBMPRouteMonitorMessage(b []byte) (*RouteMonitor, error) {
+// m
+func UnmarshalBMPRouteMonitorMessage(l3p base.L3Pkt, b []byte) (*RouteMonitor, error) {
 	if glog.V(6) {
 		glog.Infof("BMP Route Monitor Message Raw: %s length: %d", tools.MessageHex(b), len(b))
 	}
@@ -39,6 +42,8 @@ func UnmarshalBMPRouteMonitorMessage(b []byte) (*RouteMonitor, error) {
 			return nil, err
 		}
 		rm.Update = u
+		// m
+		rm.L3p = l3p
 	default:
 	}
 

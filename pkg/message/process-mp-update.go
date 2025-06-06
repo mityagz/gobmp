@@ -8,7 +8,7 @@ import (
 	"github.com/sbezverk/gobmp/pkg/srv6"
 )
 
-func (p *producer) processMPUpdate(nlri bgp.MPNLRI, operation int, ph *bmp.PerPeerHeader, update *bgp.Update) {
+func (p *producer) processMPUpdate(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operation int, ph *bmp.PerPeerHeader, update *bgp.Update) {
 	labeled := false
 	labeledSet := false
 	switch nlri.GetAFISAFIType() {
@@ -52,7 +52,8 @@ func (p *producer) processMPUpdate(nlri bgp.MPNLRI, operation int, ph *bmp.PerPe
 					topicType = bmp.UnicastPrefixV6Msg
 				}
 			}
-			if err := p.marshalAndPublish(&m, topicType, []byte(m.RouterHash), false); err != nil {
+			// m
+			if err := p.marshalAndPublish(&m, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, topicType, []byte(m.RouterHash), false); err != nil {
 				glog.Errorf("failed to process Unicast Prefix message with error: %+v", err)
 				return
 			}
@@ -74,7 +75,7 @@ func (p *producer) processMPUpdate(nlri bgp.MPNLRI, operation int, ph *bmp.PerPe
 					topicType = bmp.L3VPNV6Msg
 				}
 			}
-			if err := p.marshalAndPublish(&m, topicType, []byte(m.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&m, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, topicType, []byte(m.RouterHash), false); err != nil {
 				glog.Errorf("failed to process L3VPN message with error: %+v", err)
 				return
 			}
@@ -86,7 +87,7 @@ func (p *producer) processMPUpdate(nlri bgp.MPNLRI, operation int, ph *bmp.PerPe
 			return
 		}
 		for _, msg := range msgs {
-			if err := p.marshalAndPublish(&msg, bmp.EVPNMsg, []byte(msg.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&msg, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, bmp.EVPNMsg, []byte(msg.RouterHash), false); err != nil {
 				glog.Errorf("failed to process EVPNP message with error: %+v", err)
 				return
 			}
@@ -108,7 +109,7 @@ func (p *producer) processMPUpdate(nlri bgp.MPNLRI, operation int, ph *bmp.PerPe
 					topicType = bmp.SRPolicyV6Msg
 				}
 			}
-			if err := p.marshalAndPublish(&m, topicType, []byte(m.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&m, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, topicType, []byte(m.RouterHash), false); err != nil {
 				glog.Errorf("failed to process SRPolicy message with error: %+v", err)
 				return
 			}
@@ -128,17 +129,17 @@ func (p *producer) processMPUpdate(nlri bgp.MPNLRI, operation int, ph *bmp.PerPe
 					topicType = bmp.FlowspecV6Msg
 				}
 			}
-			if err := p.marshalAndPublish(&m, topicType, []byte(m.SpecHash), false); err != nil {
+			if err := p.marshalAndPublish(&m, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, topicType, []byte(m.SpecHash), false); err != nil {
 				glog.Errorf("failed to process Flowspec message with error: %+v", err)
 				return
 			}
 		}
 	case 71:
-		p.processNLRI71SubTypes(nlri, operation, ph, update)
+		p.processNLRI71SubTypes(rmm, nlri, operation, ph, update)
 	}
 }
 
-func (p *producer) processNLRI71SubTypes(nlri bgp.MPNLRI, operation int, ph *bmp.PerPeerHeader, update *bgp.Update) {
+func (p *producer) processNLRI71SubTypes(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operation int, ph *bmp.PerPeerHeader, update *bgp.Update) {
 	// NLRI 71 carries 6 known sub type
 	ls, err := nlri.GetNLRI71()
 	if err != nil {
@@ -160,7 +161,7 @@ func (p *producer) processNLRI71SubTypes(nlri bgp.MPNLRI, operation int, ph *bmp
 				glog.Errorf("failed to produce ls_node message with error: %+v", err)
 				continue
 			}
-			if err := p.marshalAndPublish(&msg, bmp.LSNodeMsg, []byte(msg.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&msg, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, bmp.LSNodeMsg, []byte(msg.RouterHash), false); err != nil {
 				glog.Errorf("failed to process LSNode message with error: %+v", err)
 				continue
 			}
@@ -175,7 +176,7 @@ func (p *producer) processNLRI71SubTypes(nlri bgp.MPNLRI, operation int, ph *bmp
 				glog.Errorf("failed to produce ls_link message with error: %+v", err)
 				continue
 			}
-			if err := p.marshalAndPublish(&msg, bmp.LSLinkMsg, []byte(msg.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&msg, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, bmp.LSLinkMsg, []byte(msg.RouterHash), false); err != nil {
 				glog.Errorf("failed to process LSLink message with error: %+v", err)
 				continue
 			}
@@ -193,7 +194,7 @@ func (p *producer) processNLRI71SubTypes(nlri bgp.MPNLRI, operation int, ph *bmp
 				glog.Errorf("failed to produce ls_prefix message with error: %+v", err)
 				continue
 			}
-			if err := p.marshalAndPublish(&msg, bmp.LSPrefixMsg, []byte(msg.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&msg, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, bmp.LSPrefixMsg, []byte(msg.RouterHash), false); err != nil {
 				glog.Errorf("failed to process LSPrefix message with error: %+v", err)
 				continue
 			}
@@ -208,7 +209,7 @@ func (p *producer) processNLRI71SubTypes(nlri bgp.MPNLRI, operation int, ph *bmp
 				glog.Errorf("failed to produce ls_srv6_sid message with error: %+v", err)
 				continue
 			}
-			if err := p.marshalAndPublish(&msg, bmp.LSSRv6SIDMsg, []byte(msg.RouterHash), false); err != nil {
+			if err := p.marshalAndPublish(&msg, base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID, bmp.LSSRv6SIDMsg, []byte(msg.RouterHash), false); err != nil {
 				glog.Errorf("failed to process LSSRv6SID message with error: %+v", err)
 				continue
 			}

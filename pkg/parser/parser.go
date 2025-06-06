@@ -43,7 +43,7 @@ func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 				return
 			}
 			perPerHeaderLen = bmp.PerPeerHeaderLength
-			rm, err := bmp.UnmarshalBMPRouteMonitorMessage(b[p+perPerHeaderLen : p+int(ch.MessageLength)-bmp.CommonHeaderLength])
+			rm, err := bmp.UnmarshalBMPRouteMonitorMessage(l3p, b[p+perPerHeaderLen:p+int(ch.MessageLength)-bmp.CommonHeaderLength])
 			if err != nil {
 				glog.Errorf("fail to recover BMP Route Monitoring with error: %+v", err)
 				if glog.V(5) {
@@ -54,6 +54,9 @@ func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 				return
 			}
 			bmpMsg.Payload = rm
+			// m
+			bmpMsg.L3p = rm.L3p
+			//glog.Infof("Parser RouterID: %s", base.BmpRtrM[bmpMsg.L3p.SrcIpPort].RouterID)
 			p += perPerHeaderLen
 		case bmp.StatsReportMsg:
 			if bmpMsg.PeerHeader, err = bmp.UnmarshalPerPeerHeader(b[p : p+int(ch.MessageLength-bmp.CommonHeaderLength)]); err != nil {
@@ -65,6 +68,8 @@ func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 				glog.Errorf("fail to recover BMP Stats Reports message with error: %+v", err)
 				return
 			}
+			// m
+			bmpMsg.L3p = l3p
 			p += perPerHeaderLen
 		case bmp.PeerDownMsg:
 			if bmpMsg.PeerHeader, err = bmp.UnmarshalPerPeerHeader(b[p : p+int(ch.MessageLength-bmp.CommonHeaderLength)]); err != nil {
@@ -76,6 +81,8 @@ func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 				glog.Errorf("fail to recover BMP Peer Down message with error: %+v", err)
 				return
 			}
+			// m
+			bmpMsg.L3p = l3p
 			p += perPerHeaderLen
 		case bmp.PeerUpMsg:
 			if bmpMsg.PeerHeader, err = bmp.UnmarshalPerPeerHeader(b[p : p+int(ch.MessageLength-bmp.CommonHeaderLength)]); err != nil {
@@ -87,6 +94,8 @@ func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 				glog.Errorf("fail to recover BMP Peer Up message with error: %+v", err)
 				return
 			}
+			// m
+			bmpMsg.L3p = l3p
 			p += perPerHeaderLen
 		case bmp.InitiationMsg:
 			// m
@@ -96,6 +105,8 @@ func parsingWorker(l3p base.L3Pkt, b []byte, producerQueue chan bmp.Message) {
 			}
 		case bmp.TerminationMsg:
 			glog.V(5).Infof("Termination message")
+			// m
+			delete(base.BmpRtrM, l3p.SrcIpPort)
 			if glog.V(6) {
 				glog.Infof("Content: %s", tools.MessageHex(b))
 			}
