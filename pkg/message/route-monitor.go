@@ -63,14 +63,14 @@ func (p *producer) produceRouteMonitorMessage(msg bmp.Message) {
 		// Original BGP's NLRI messages processing
 		msgs := make([]*UnicastPrefix, 0)
 		if routeMonitorMsg.Update.WithdrawnRoutesLength != 0 {
-			msg, err := p.nlri(DelPrefix, msg.PeerHeader, routeMonitorMsg.Update)
+			msg, err := p.nlri(*routeMonitorMsg, DelPrefix, msg.PeerHeader, routeMonitorMsg.Update)
 			if err != nil {
 				glog.Errorf("failed to produce original NLRI Withdraw message with error: %+v", err)
 				return
 			}
 			msgs = append(msgs, msg...)
 		}
-		msg, err := p.nlri(AddPrefix, msg.PeerHeader, routeMonitorMsg.Update)
+		msg, err := p.nlri(*routeMonitorMsg, AddPrefix, msg.PeerHeader, routeMonitorMsg.Update)
 		if err != nil {
 			glog.Errorf("failed to produce original NLRI Withdraw message with error: %+v", err)
 			return

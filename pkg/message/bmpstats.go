@@ -27,6 +27,7 @@ func (p *producer) produceStatsMessage(msg bmp.Message) {
 	}
 
 	m := Stats{
+		RouterID:   base.BmpRtrM[msg.L3p.SrcIpPort].RouterID,
 		RemoteASN:  msg.PeerHeader.PeerAS,
 		PeerRD:     msg.PeerHeader.GetPeerDistinguisherString(),
 		Timestamp:  msg.PeerHeader.GetPeerTimestamp(),

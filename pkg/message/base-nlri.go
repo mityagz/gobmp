@@ -13,7 +13,7 @@ import (
 // nlri process base nlri information found and bgp update message and returns
 // a slice of UnicatPrefix.
 // Used Only by Legacy IPv4 Unicast
-func (p *producer) nlri(op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*UnicastPrefix, error) {
+func (p *producer) nlri(rmm bmp.RouteMonitor, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*UnicastPrefix, error) {
 	var operation string
 	var routes []base.Route
 	pathID := p.addPathCapable[bgp.NLRIMessageType(1, 1)]
@@ -42,6 +42,7 @@ func (p *producer) nlri(op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*U
 		return []*UnicastPrefix{
 			{
 				Action:     operation,
+				RouterID:   base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 				RouterHash: p.speakerHash,
 				RouterIP:   p.speakerIP,
 				PeerHash:   ph.GetPeerHash(),
@@ -55,6 +56,7 @@ func (p *producer) nlri(op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*U
 	for _, pr := range routes {
 		prfx := &UnicastPrefix{
 			Action:         operation,
+			RouterID:       base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 			RouterHash:     p.speakerHash,
 			RouterIP:       p.speakerIP,
 			PeerHash:       ph.GetPeerHash(),

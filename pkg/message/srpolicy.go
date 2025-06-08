@@ -3,6 +3,7 @@ package message
 import (
 	"fmt"
 
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bgp"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 	"github.com/sbezverk/gobmp/pkg/srpolicy"
@@ -10,7 +11,7 @@ import (
 
 // evpn process MP_REACH_NLRI AFI 25 SAFI 70 update message and returns
 // EVPN prefix object.
-func (p *producer) srpolicy(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*SRPolicy, error) {
+func (p *producer) srpolicy(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*SRPolicy, error) {
 	sr, err := nlri.GetNLRI73()
 	if err != nil {
 		return nil, err
@@ -26,6 +27,7 @@ func (p *producer) srpolicy(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, upda
 	}
 	prfx := SRPolicy{
 		Action:         operation,
+		RouterID:       base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 		RouterHash:     p.speakerHash,
 		RouterIP:       p.speakerIP,
 		PeerType:       uint8(ph.PeerType),

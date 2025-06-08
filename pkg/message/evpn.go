@@ -5,13 +5,14 @@ import (
 	"net"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bgp"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 )
 
 // evpn process MP_REACH_NLRI AFI 25 SAFI 70 update message and returns
 // EVPN prefix object.
-func (p *producer) evpn(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]EVPNPrefix, error) {
+func (p *producer) evpn(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]EVPNPrefix, error) {
 	if glog.V(6) {
 		glog.Infof("All attributes in evpn update: %+v", update.GetAllAttributeID())
 	}
@@ -33,6 +34,7 @@ func (p *producer) evpn(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *
 	for _, e := range evpn.Route {
 		prfx := EVPNPrefix{
 			Action:         operation,
+			RouterID:       base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 			PeerType:       uint8(ph.PeerType),
 			RouterHash:     p.speakerHash,
 			RouterIP:       p.speakerIP,

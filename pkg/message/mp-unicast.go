@@ -10,7 +10,7 @@ import (
 )
 
 // unicast process nlri 14 afi 1/2 safi 1 messages and generates UnicastPrefix messages
-func (p *producer) unicast(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update, label bool) ([]*UnicastPrefix, error) {
+func (p *producer) unicast(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update, label bool) ([]*UnicastPrefix, error) {
 	var err error
 	var operation string
 	switch op {
@@ -40,6 +40,7 @@ func (p *producer) unicast(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, updat
 		return []*UnicastPrefix{
 			{
 				Action:     operation,
+				RouterID:   base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 				RouterHash: p.speakerHash,
 				RouterIP:   p.speakerIP,
 				PeerHash:   ph.GetPeerHash(),
@@ -53,6 +54,7 @@ func (p *producer) unicast(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, updat
 	for _, e := range u.NLRI {
 		prfx := &UnicastPrefix{
 			Action:         operation,
+			RouterID:       base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 			RouterHash:     p.speakerHash,
 			RouterIP:       p.speakerIP,
 			PeerType:       uint8(ph.PeerType),

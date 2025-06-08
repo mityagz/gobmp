@@ -29,6 +29,7 @@ func (p *producer) producePeerMessage(op int, msg bmp.Message) {
 		}
 		m = PeerStateChange{
 			Action:         action,
+			RouterID:       base.BmpRtrM[msg.L3p.SrcIpPort].RouterID,
 			RemoteASN:      msg.PeerHeader.PeerAS,
 			PeerType:       uint8(msg.PeerHeader.PeerType),
 			PeerRD:         msg.PeerHeader.GetPeerDistinguisherString(),

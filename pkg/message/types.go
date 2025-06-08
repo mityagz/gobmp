@@ -21,6 +21,7 @@ type PeerStateChange struct {
 	ID              string         `json:"_id,omitempty"`
 	Rev             string         `json:"_rev,omitempty"`
 	Action          string         `json:"action,omitempty"` // Action can be "add" for peer up and "del" for peer down message
+	RouterID        string         `json:"router_id,omitempty"`
 	Sequence        int            `json:"sequence,omitempty"`
 	Hash            string         `json:"hash,omitempty"`
 	RouterHash      string         `json:"router_hash,omitempty"`
@@ -63,6 +64,7 @@ type UnicastPrefix struct {
 	ID             string              `json:"_id,omitempty"`
 	Rev            string              `json:"_rev,omitempty"`
 	Action         string              `json:"action,omitempty"` // Action can be "add" or "del"
+	RouterID       string              `json:"router_id,omitempty"`
 	Sequence       int                 `json:"sequence,omitempty"`
 	Hash           string              `json:"hash,omitempty"`
 	RouterHash     string              `json:"router_hash,omitempty"`
@@ -293,6 +295,7 @@ type L3VPNPrefix struct {
 	ID             string              `json:"_id,omitempty"`
 	Rev            string              `json:"_rev,omitempty"`
 	Action         string              `json:"action,omitempty"` // Action can be "add" or "del"
+	RouterID       string              `json:"router_id,omitempty"`
 	Sequence       int                 `json:"sequence,omitempty"`
 	Hash           string              `json:"hash,omitempty"`
 	RouterHash     string              `json:"router_hash,omitempty"`
@@ -412,6 +415,7 @@ type EVPNPrefix struct {
 	ID             string              `json:"_id,omitempty"`
 	Rev            string              `json:"_rev,omitempty"`
 	Action         string              `json:"action,omitempty"` // Action can be "add" or "del"
+	RouterID       string              `json:"router_id,omitempty"`
 	Sequence       int                 `json:"sequence,omitempty"`
 	Hash           string              `json:"hash,omitempty"`
 	RouterHash     string              `json:"router_hash,omitempty"`
@@ -456,6 +460,7 @@ type SRPolicy struct {
 	ID             string                  `json:"_id,omitempty"`
 	Rev            string                  `json:"_rev,omitempty"`
 	Action         string                  `json:"action,omitempty"` // Action can be "add" or "del"
+	RouterID       string                  `json:"router_id,omitempty"`
 	Sequence       int                     `json:"sequence,omitempty"`
 	Hash           string                  `json:"hash,omitempty"`
 	RouterHash     string                  `json:"router_hash,omitempty"`
@@ -495,6 +500,7 @@ type Flowspec struct {
 	ID             string              `json:"_id,omitempty"`
 	Rev            string              `json:"_rev,omitempty"`
 	Action         string              `json:"action,omitempty"` // Action can be "add" or "del"
+	RouterID       string              `json:"router_id,omitempty"`
 	Sequence       int                 `json:"sequence,omitempty"`
 	RouterIP       string              `json:"router_ip,omitempty"`
 	BaseAttributes *bgp.BaseAttributes `json:"base_attrs,omitempty"`
@@ -520,6 +526,7 @@ type Stats struct {
 	Key                        string `json:"_key,omitempty"`
 	ID                         string `json:"_id,omitempty"`
 	Rev                        string `json:"_rev,omitempty"`
+	RouterID                   string `json:"router_id,omitempty"`
 	Sequence                   int    `json:"sequence,omitempty"`
 	RouterHash                 string `json:"router_hash,omitempty"`
 	RouterIP                   string `json:"router_ip,omitempty"`

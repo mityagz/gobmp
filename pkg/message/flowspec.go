@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/sbezverk/gobmp/pkg/base"
 	"github.com/sbezverk/gobmp/pkg/bgp"
 	"github.com/sbezverk/gobmp/pkg/bmp"
 	"github.com/sbezverk/gobmp/pkg/flowspec"
 )
 
 // unicast process nlri 14 afi 1/2 safi 1 messages and generates UnicastPrefix messages
-func (p *producer) flowspec(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*Flowspec, error) {
+func (p *producer) flowspec(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, update *bgp.Update) ([]*Flowspec, error) {
 	var operation string
 	switch op {
 	case 0:
@@ -28,6 +29,7 @@ func (p *producer) flowspec(nlri bgp.MPNLRI, op int, ph *bmp.PerPeerHeader, upda
 	}
 	fs := &Flowspec{
 		Action:         operation,
+		RouterID:       base.BmpRtrM[rmm.L3p.SrcIpPort].RouterID,
 		RouterIP:       p.speakerIP,
 		PeerType:       uint8(ph.PeerType),
 		PeerASN:        ph.PeerAS,

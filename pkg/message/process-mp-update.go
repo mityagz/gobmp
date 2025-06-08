@@ -38,7 +38,7 @@ func (p *producer) processMPUpdate(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operat
 		if !labeledSet {
 			labeled = true
 		}
-		msgs, err := p.unicast(nlri, operation, ph, update, labeled)
+		msgs, err := p.unicast(rmm, nlri, operation, ph, update, labeled)
 		if err != nil {
 			return
 		}
@@ -61,7 +61,7 @@ func (p *producer) processMPUpdate(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operat
 	case 18:
 		fallthrough
 	case 19:
-		msgs, err := p.l3vpn(nlri, operation, ph, update)
+		msgs, err := p.l3vpn(rmm, nlri, operation, ph, update)
 		if err != nil {
 			glog.Errorf("failed to produce l3vpn messages with error: %+v", err)
 			return
@@ -81,7 +81,7 @@ func (p *producer) processMPUpdate(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operat
 			}
 		}
 	case 24:
-		msgs, err := p.evpn(nlri, operation, ph, update)
+		msgs, err := p.evpn(rmm, nlri, operation, ph, update)
 		if err != nil {
 			glog.Errorf("failed to produce evpn messages with error: %+v", err)
 			return
@@ -95,7 +95,7 @@ func (p *producer) processMPUpdate(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operat
 	case 25:
 		fallthrough
 	case 26:
-		msgs, err := p.srpolicy(nlri, operation, ph, update)
+		msgs, err := p.srpolicy(rmm, nlri, operation, ph, update)
 		if err != nil {
 			glog.Errorf("failed to produce srpolicy messages with error: %+v", err)
 			return
@@ -115,7 +115,7 @@ func (p *producer) processMPUpdate(rmm bmp.RouteMonitor, nlri bgp.MPNLRI, operat
 			}
 		}
 	case 27:
-		msgs, err := p.flowspec(nlri, operation, ph, update)
+		msgs, err := p.flowspec(rmm, nlri, operation, ph, update)
 		if err != nil {
 			glog.Errorf("failed to produce flowspec messages with error: %+v", err)
 			return
