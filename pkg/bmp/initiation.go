@@ -3,9 +3,11 @@ package bmp
 import (
 	"encoding/binary"
 	"fmt"
+	"strconv"
 
 	"github.com/golang/glog"
 	"github.com/sbezverk/gobmp/pkg/base"
+	"github.com/sbezverk/gobmp/pkg/db"
 	"github.com/sbezverk/tools"
 )
 
@@ -60,7 +62,8 @@ func UnmarshalInitiationMessage(l3p base.L3Pkt, b []byte) (*InitiationMessage, e
 			brt.SysName = string(v)
 		}
 	}
-	brt.RouterID = brt.SrcIp + ":" + brt.SysName
+	id, rid := db.GetRidByHostname(brt.SysName)
+	brt.RouterID = rid + ":" + brt.SysName + ":" + strconv.Itoa(id)
 	base.BmpRtrM[l3p.SrcIpPort] = brt
 
 	return im, nil

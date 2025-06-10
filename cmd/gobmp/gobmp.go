@@ -13,6 +13,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/sbezverk/gobmp/pkg/base"
+	"github.com/sbezverk/gobmp/pkg/db"
 	"github.com/sbezverk/gobmp/pkg/dumper"
 	"github.com/sbezverk/gobmp/pkg/filer"
 	"github.com/sbezverk/gobmp/pkg/gobmpsrv"
@@ -33,6 +34,8 @@ var (
 	splitAF           string
 	dump              string
 	file              string
+	pghost            string
+	pgdb              string
 )
 
 func init() {
@@ -47,6 +50,8 @@ func init() {
 	flag.IntVar(&perfPort, "performance-port", 56767, "port used for performance debugging")
 	flag.StringVar(&dump, "dump", "", "Dump resulting messages to file when \"dump=file\", to standard output when \"dump=console\" or to NATS when \"dump=nats\"")
 	flag.StringVar(&file, "msg-file", "/tmp/messages.json", "Full path anf file name to store messages when \"dump=file\"")
+	flag.StringVar(&pghost, "pghost", "127.0.0.1", "")
+	flag.StringVar(&pgdb, "pgdb", "gobmp", "")
 }
 
 func main() {
@@ -96,6 +101,9 @@ func main() {
 
 	// m
 	base.BmpRtrM = make(map[string]base.BmpRouter)
+	db.Pg_host = pghost
+	db.Pg_db = pgdb
+	db.Open()
 	// Initializing bmp server
 	interceptFlag, err := strconv.ParseBool(intercept)
 	if err != nil {
@@ -119,5 +127,7 @@ func main() {
 	<-stopCh
 
 	bmpSrv.Stop()
+	//m
+	db.Close()
 	os.Exit(0)
 }
