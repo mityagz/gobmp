@@ -63,7 +63,7 @@ func UnmarshalInitiationMessage(l3p base.L3Pkt, b []byte) (*InitiationMessage, e
 		}
 	}
 	id, rid := db.GetRidByHostname(brt.SysName)
-	brt.RouterID = rid + ":" + brt.SysName + ":" + strconv.Itoa(id)
+	brt.RouterID = rid + ":" + l3p.SrcPort + ":" + brt.SysName + ":" + strconv.Itoa(id)
 	base.BmpRtrM[l3p.SrcIpPort] = brt
 
 	return im, nil
