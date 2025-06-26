@@ -15,6 +15,10 @@ gobmp:
 	mkdir -p bin
 	$(MAKE) -C ./cmd/gobmp compile-gobmp
 
+gobmpdb:
+	mkdir -p bin
+	$(MAKE) -C ./cmd/gobmpdb compile-gobmpdb
+
 player:
 	mkdir -p bin
 	$(MAKE) -C ./cmd/player compile-player
