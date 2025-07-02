@@ -37,10 +37,14 @@ func Open() {
 
 	connStr := "host=" + Pg_host + " user=" + pgbmp_user + " password=" + pgbmp_pass + " dbname=" + Pg_db + " sslmode=disable"
 	db, err = sql.Open("postgres", connStr)
+	//db.SetMaxOpenConns(10)
+	//db.SetMaxIdleConns(2)
+	//db.SetConnMaxIdleTime(1)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
+	//defer db.Close()
 }
 
 func Close() {
@@ -165,6 +169,8 @@ func (s *store) L3VPNMsgPG(topic *kafka.TopicDescriptor, done chan struct{}, wor
 	}
 }
 func (s *store) L3VPNV4MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, workersErrChan chan error) {
+	l3vpnS := L3VPNPrefixS{}
+	baS := BaseAttributesS{}
 	for {
 		select {
 		case <-s.stopCh:
@@ -176,11 +182,10 @@ func (s *store) L3VPNV4MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, w
 				workersErrChan <- err
 				return
 			}
-			/*
-				if u.IsEOR {
-					continue
-				}
-			*/
+			l3vpnS = L3VPNPrefixS{}
+			baS = BaseAttributesS{}
+			updL3VPNV4_HistPG(u, l3vpnS, baS)
+			updL3VPNV4_CurrPG(u)
 			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
 		}
 	}
