@@ -1,11 +1,11 @@
 package bmppg
 
-//import bmp_message "github.com/sbezverk/gobmp/pkg/message"
 import (
 	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/golang/glog"
 	bmp_message "github.com/sbezverk/gobmp/pkg/message"
@@ -32,12 +32,20 @@ func arrStr2S(as []string) string {
 	return r
 }
 
+func str2TS(t string) string {
+	var r string
+	rr := strings.Split(t, "T")
+	r1 := strings.TrimRight(rr[1], "Z")
+	r = rr[0] + " " + r1
+	return r
+}
+
 func (l3v *L3VPNPrefixS) insertL3VPNV4_HistPG() {
 	q0 := `insert into l3vpnV4(action, router_id, router_hash, router_ip, base_attr_hash, 
 			    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
 			    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
 			    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
-			    is_loc_rib_filtered, timestamp) 
+			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp) 
 			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `', 
 			           '` + l3v.RouterIP + `', '` + l3v.BaseAttributes + `', '` + l3v.PeerHash + `', 
 				   '` + l3v.PeerIP + `', ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `, 
@@ -50,12 +58,14 @@ func (l3v *L3VPNPrefixS) insertL3VPNV4_HistPG() {
 				   ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `, 
 				   ` + strconv.FormatBool(l3v.IsAdjRIBInPost) + `, 
 				   ` + strconv.FormatBool(l3v.IsAdjRIBOutPost) + `, 
-				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `')`
+				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `', 
+				   '` + str2TS(l3v.Timestamp) + `',  now())`
 
-	glog.Infof("SQL -> %s\n", q0)
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
 	rows, err := db.Query(q0)
 	defer rows.Close()
-	//rows
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +77,9 @@ func (ba *BaseAttributesS) searchBaseAttrByHash_HistPG(h string) bool {
 	)
 	q0 := `select base_attr_hash 
 			       from base_attrs where base_attr_hash like '` + h + `'`
-	glog.Infof("SQL -> %s\n", q0)
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
 	rows, err := db.Query(q0)
 	defer rows.Close()
 	if err != nil {
@@ -95,12 +107,11 @@ func (ba *BaseAttributesS) insertBaseAttr_HistPG() {
 	if ba.searchBaseAttrByHash_HistPG(ba.BaseAttrHash) {
 		return
 	}
-	// to_sql
 	q0 := `insert into base_attrs(base_attr_hash, origin, as_path, as_path_count, nexthop, 
 				      med, local_pref, is_atomic_agg, aggregator, community_list, 
 				      originator_id, cluster_list, ext_community_list, as4_path, 
 				      as4_path_count, as4_aggregator, tunnel_encap_attr, 
-				      large_community_list, timestamp)
+				      large_community_list, stimestamp, rtimestamp, ltimestamp)
 				      values(` + `'` + ba.BaseAttrHash + `', '` + ba.Origin + `', 
 				      	    '` + ba.ASPath + `', ` + strconv.FormatInt(int64(ba.ASPathCount), 10) + `,
 					    '` + ba.Nexthop + `', ` + strconv.FormatInt(int64(ba.MED), 10) + `, 
@@ -112,17 +123,15 @@ func (ba *BaseAttributesS) insertBaseAttr_HistPG() {
 					    ` + strconv.FormatInt(int64(ba.AS4PathCount), 10) + `, 
 					    '` + ba.AS4Aggregator + `', 
 					    '` + ba.TunnelEncapAttr + `', '` + ba.LgCommunityList + `', 
-					    '` + ba.Timestamp + `')`
-	//'` + ba.Aggregator + `', '` + ba.CommunityList + `',
-	glog.Infof("SQL -> %s\n", q0)
+					    '` + ba.Timestamp + `', '` + str2TS(ba.Timestamp) + `',  now())`
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
 	rows, err := db.Query(q0)
 	defer rows.Close()
-	//rows
 	if err != nil {
 		log.Fatal(err)
 	}
-	/*
-	 */
 }
 
 func (l3v *L3VPNPrefixS) searchPeerByHash_HistPG(h string) bool {
@@ -131,7 +140,9 @@ func (l3v *L3VPNPrefixS) searchPeerByHash_HistPG(h string) bool {
 	)
 	q0 := `select peer_hash
 			       from peers where peer_hash like '` + h + `'`
-	glog.Infof("SQL -> %s\n", q0)
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
 	rows, err := db.Query(q0)
 	defer rows.Close()
 	if err != nil {
@@ -159,21 +170,19 @@ func (l3v *L3VPNPrefixS) insertPeer_HistPG() {
 	if l3v.searchPeerByHash_HistPG(l3v.PeerHash) {
 		return
 	}
-	// to_sql
-	q0 := `insert into peers (peer_hash, peer_ip, peer_type, peer_asn, timestamp)
+	q0 := `insert into peers (peer_hash, peer_ip, peer_type, peer_asn, stimestamp, rtimestamp, ltimestamp)
 				values('` + l3v.PeerHash + `', '` + l3v.PeerIP + `', 
 				       ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `, 
 				       ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, 
-				       '` + l3v.Timestamp + `')`
-	glog.Infof("SQL -> %s\n", q0)
+				       '` + l3v.Timestamp + `', '` + str2TS(l3v.Timestamp) + `',  now())`
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
 	rows, err := db.Query(q0)
 	defer rows.Close()
-	//rows
 	if err != nil {
 		log.Fatal(err)
 	}
-	/*
-	 */
 }
 
 func (bas *BaseAttributesS) baseAttr2S(pf bmp_message.L3VPNPrefix) {
@@ -242,12 +251,13 @@ func (l3v *L3VPNPrefixS) l3vpnPfx2S(l3vp bmp_message.L3VPNPrefix) {
 }
 
 func updL3VPNV4_HistPG(l3vpnPfx *bmp_message.L3VPNPrefix, l3v L3VPNPrefixS, bas BaseAttributesS) {
-	//bas.baseAttr2S(*l3vpnPfx.BaseAttributes)
 	bas.baseAttr2S(*l3vpnPfx)
 	l3v.l3vpnPfx2S(*l3vpnPfx)
 
-	glog.Infof("updL3VPNV4 SQL -> %s\n", l3vpnPfx)
-	glog.Infof("updL3VPNV4 bas SQL -> %s\n", bas)
+	if glog.V(6) {
+		glog.Infof("updL3VPNV4 SQL -> %s\n", l3vpnPfx)
+		glog.Infof("updL3VPNV4 bas SQL -> %s\n", bas)
+	}
 	bas.insertBaseAttr_HistPG()
 	l3v.insertPeer_HistPG()
 	l3v.insertL3VPNV4_HistPG()

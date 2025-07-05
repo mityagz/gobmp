@@ -52,5 +52,6 @@ func GetRidByHostname(hostname string) (id int, rid string) {
 		default:
 		}
 	}
+	rows.Close()
 	return id, rid
 }

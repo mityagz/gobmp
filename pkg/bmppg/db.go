@@ -80,6 +80,11 @@ func GetKafkaTopics() []kafka_topic {
 		default:
 		}
 	}
+
+	nkt := len(kafka_topics)
+	db.SetMaxOpenConns(nkt)
+	db.SetMaxIdleConns(nkt)
+
 	return kafka_topics
 }
 
@@ -91,7 +96,9 @@ func (s *store) UnicastPrefixMsgPG(topic *kafka.TopicDescriptor, done chan struc
 		case <-s.stopCh:
 			return
 		case msg := <-topic.TopicChan:
-			glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			}
 			u := &bmp_message.UnicastPrefix{}
 			if err := json.Unmarshal(msg, u); err != nil {
 				workersErrChan <- err
@@ -100,7 +107,9 @@ func (s *store) UnicastPrefixMsgPG(topic *kafka.TopicDescriptor, done chan struc
 			if u.IsEOR {
 				continue
 			}
-			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			}
 		}
 	}
 
@@ -111,7 +120,9 @@ func (s *store) UnicastPrefixV4MsgPG(topic *kafka.TopicDescriptor, done chan str
 		case <-s.stopCh:
 			return
 		case msg := <-topic.TopicChan:
-			glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			}
 			u := &bmp_message.UnicastPrefix{}
 			if err := json.Unmarshal(msg, u); err != nil {
 				workersErrChan <- err
@@ -120,7 +131,9 @@ func (s *store) UnicastPrefixV4MsgPG(topic *kafka.TopicDescriptor, done chan str
 			if u.IsEOR {
 				continue
 			}
-			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			}
 		}
 	}
 }
@@ -130,7 +143,9 @@ func (s *store) UnicastPrefixV6MsgPG(topic *kafka.TopicDescriptor, done chan str
 		case <-s.stopCh:
 			return
 		case msg := <-topic.TopicChan:
-			glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			}
 			u := &bmp_message.UnicastPrefix{}
 			if err := json.Unmarshal(msg, u); err != nil {
 				workersErrChan <- err
@@ -139,7 +154,9 @@ func (s *store) UnicastPrefixV6MsgPG(topic *kafka.TopicDescriptor, done chan str
 			if u.IsEOR {
 				continue
 			}
-			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			}
 		}
 	}
 }
@@ -153,18 +170,17 @@ func (s *store) L3VPNMsgPG(topic *kafka.TopicDescriptor, done chan struct{}, wor
 		case <-s.stopCh:
 			return
 		case msg := <-topic.TopicChan:
-			glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			}
 			u := &bmp_message.L3VPNPrefix{}
 			if err := json.Unmarshal(msg, u); err != nil {
 				workersErrChan <- err
 				return
 			}
-			/*
-				if u.IsEOR {
-					continue
-				}
-			*/
-			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			}
 		}
 	}
 }
@@ -176,7 +192,9 @@ func (s *store) L3VPNV4MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, w
 		case <-s.stopCh:
 			return
 		case msg := <-topic.TopicChan:
-			glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			}
 			u := &bmp_message.L3VPNPrefix{}
 			if err := json.Unmarshal(msg, u); err != nil {
 				workersErrChan <- err
@@ -186,7 +204,9 @@ func (s *store) L3VPNV4MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, w
 			baS = BaseAttributesS{}
 			updL3VPNV4_HistPG(u, l3vpnS, baS)
 			updL3VPNV4_CurrPG(u)
-			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			}
 		}
 	}
 }
@@ -196,18 +216,17 @@ func (s *store) L3VPNV6MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, w
 		case <-s.stopCh:
 			return
 		case msg := <-topic.TopicChan:
-			glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d", topic.TopicType)
+			}
 			u := &bmp_message.L3VPNPrefix{}
 			if err := json.Unmarshal(msg, u); err != nil {
 				workersErrChan <- err
 				return
 			}
-			/*
-				if u.IsEOR {
-					continue
-				}
-			*/
-			glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			if glog.V(6) {
+				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
+			}
 		}
 	}
 }
