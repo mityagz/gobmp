@@ -88,3 +88,5 @@ CREATE TABLE l3vpnV4 (
 );
 
 -- select action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, l.rtimestamp from l3vpnv4 l, base_attrs b where prefix like '62.192.1.225' and l.base_attr_hash = b.base_attr_hash and vpn_rd like '%2054' and router_id like '10.229.134.0%' group by action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, l.rtimestamp order by l.rtimestamp;
+
+-- select action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, l.rtimestamp, l.ltimestamp from l3vpnv4 l, base_attrs b where prefix like '62.192.1.225' and l.base_attr_hash = b.base_attr_hash and vpn_rd like '%2054' and router_id like '10.229.134.0%' group by action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, l.rtimestamp, l.ltimestamp order by l.rtimestamp, l.ltimestamp;
