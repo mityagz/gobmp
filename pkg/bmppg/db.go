@@ -203,7 +203,7 @@ func (s *store) L3VPNV4MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, w
 			l3vpnS = L3VPNPrefixS{}
 			baS = BaseAttributesS{}
 			updL3VPNV4_HistPG(u, l3vpnS, baS)
-			updL3VPNV4_CurrPG(u)
+			updL3VPNV4_CurrPG(u, l3vpnS, baS)
 			if glog.V(6) {
 				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
 			}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -263,8 +264,151 @@ func updL3VPNV4_HistPG(l3vpnPfx *bmp_message.L3VPNPrefix, l3v L3VPNPrefixS, bas 
 	l3v.insertL3VPNV4_HistPG()
 }
 
-func updL3VPNV4_CurrPG(l3vpnPfx *bmp_message.L3VPNPrefix) {
+/*
+ CurrPG
+*/
 
+func (l3v *L3VPNPrefixS) searchIdByPfx_CurrPG() (id int) {
+	q0 := `select l.id from l3vpnv4_curr l, base_attrs b 
+	      where l.base_attr_hash = b.base_attr_hash 
+	      and prefix like '` + l3v.Prefix + `' 
+	      and prefix_len = ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + ` 
+	      and vpn_rd like '` + l3v.VPNRD + `' 
+	      and router_id like '` + l3v.RouterID + `' 
+	      and peer_ip like '` + l3v.PeerIP + `'`
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
+	rows, err := db.Query(q0)
+	defer rows.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rows.Next()
+	switch err := rows.Scan(&id); err {
+	case sql.ErrNoRows:
+		return -1
+	case nil:
+	default:
+	}
+	if glog.V(6) {
+		glog.Infof("SQL ID -> %s\n", id)
+	}
+	var id1 int
+	rows.Next()
+	switch err := rows.Scan(&id1); err {
+	case sql.ErrNoRows:
+		return id
+	case nil:
+		glog.Infof("Too many rows were returned")
+		os.Exit(1)
+		return -2
+	default:
+	}
+	if glog.V(6) {
+		glog.Infof("SQL ID1 -> %s\n", id1)
+	}
+	return id
+}
+func (l3v *L3VPNPrefixS) insertL3VPNV4_CurrPG() {
+	q0 := `insert into l3vpnV4_curr(action, router_id, router_hash, router_ip, base_attr_hash, 
+			    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
+			    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
+			    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
+			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp) 
+			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `', 
+			           '` + l3v.RouterIP + `', '` + l3v.BaseAttributes + `', '` + l3v.PeerHash + `', 
+				   '` + l3v.PeerIP + `', ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, '` + l3v.Prefix + `', 
+				   ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + `, 
+				   ` + strconv.FormatBool(l3v.IsIPv4) + `, '` + l3v.Nexthop + `', 
+				   ` + strconv.FormatBool(l3v.IsNexthopIPv4) + `, '` + l3v.Labels + `', 
+				   '` + l3v.VPNRD + `', ` + strconv.FormatInt(int64(l3v.VPNRDType), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.PathID), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `, 
+				   ` + strconv.FormatBool(l3v.IsAdjRIBInPost) + `, 
+				   ` + strconv.FormatBool(l3v.IsAdjRIBOutPost) + `, 
+				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `', 
+				   '` + str2TS(l3v.Timestamp) + `',  now())`
+
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
+	rows, err := db.Query(q0)
+	defer rows.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (l3v *L3VPNPrefixS) updateL3VPNV4_CurrPG(id int) {
+	/*
+		q0 := `update l3vpnV4_curr set action, router_id, router_hash, router_ip, base_attr_hash,
+				    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
+				    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
+				    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
+				    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp)
+				    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `',
+	*/
+	q0 := `update l3vpnV4_curr set  base_attr_hash = '` + l3v.BaseAttributes + `', 
+			    nexthop = '` + l3v.Nexthop + `', 
+			    labels = '` + l3v.Labels + `', 
+			    path_id = ` + strconv.FormatInt(int64(l3v.PathID), 10) + `, 
+			    origin_as = ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `, 
+			    stimestamp = '` + l3v.Timestamp + `', 
+			    rtimestamp = '` + str2TS(l3v.Timestamp) + `',  
+			    ltimestamp = now() where id = ` + strconv.FormatInt(int64(id), 10)
+
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
+	rows, err := db.Query(q0)
+	defer rows.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (l3v *L3VPNPrefixS) deletePfxById_CurrPG(id int) {
+	q0 := `delete from l3vpnv4_curr
+	       where id = ` + strconv.FormatInt(int64(id), 10)
+	if glog.V(6) {
+		glog.Infof("SQL -> %s\n", q0)
+	}
+	rows, err := db.Query(q0)
+	defer rows.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (l3v *L3VPNPrefixS) modifyL3VPNV4_CurrPG() {
+	id := l3v.searchIdByPfx_CurrPG()
+	// no row was found out
+	if id == 0 {
+		l3v.insertL3VPNV4_CurrPG()
+	} else {
+		if l3v.Action == "add" {
+			l3v.updateL3VPNV4_CurrPG(id)
+		} else if l3v.Action == "del" {
+			l3v.deletePfxById_CurrPG(id)
+		}
+	}
+
+}
+
+func updL3VPNV4_CurrPG(l3vpnPfx *bmp_message.L3VPNPrefix, l3v L3VPNPrefixS, bas BaseAttributesS) {
+	bas.baseAttr2S(*l3vpnPfx)
+	l3v.l3vpnPfx2S(*l3vpnPfx)
+
+	if glog.V(6) {
+		glog.Infof("updL3VPNV4 SQL Curr -> %s\n", l3vpnPfx)
+		glog.Infof("updL3VPNV4 bas SQL Curr -> %s\n", bas)
+	}
+	//bas.insertBaseAttr_HistPG()
+	//l3v.insertPeer_HistPG()
+	l3v.modifyL3VPNV4_CurrPG()
 }
 
 type L3VPNPrefixS struct {
