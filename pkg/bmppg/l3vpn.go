@@ -1,9 +1,17 @@
 package bmppg
 
 import (
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
 	"strconv"
-	"strings"
+
+	"github.com/golang/glog"
+	bmp_message "github.com/sbezverk/gobmp/pkg/message"
 )
+
+/*
 
 func arrInt2S(ai []uint32) string {
 	var r string
@@ -34,27 +42,27 @@ func str2TS(t string) string {
 	return r
 }
 
-/*
+*/
 
 func (l3v *L3VPNPrefixS) insertL3VPNV4_HistPG() {
-	q0 := `insert into l3vpnV4(action, router_id, router_hash, router_ip, base_attr_hash,
+	q0 := `insert into l3vpnV4(action, router_id, router_hash, router_ip, base_attr_hash, 
 			    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
 			    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
 			    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
-			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp)
-			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `',
-			           '` + l3v.RouterIP + `', '` + l3v.BaseAttributes + `', '` + l3v.PeerHash + `',
-				   '` + l3v.PeerIP + `', ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `,
-				   ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, '` + l3v.Prefix + `',
-				   ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + `,
-				   ` + strconv.FormatBool(l3v.IsIPv4) + `, '` + l3v.Nexthop + `',
-				   ` + strconv.FormatBool(l3v.IsNexthopIPv4) + `, '` + l3v.Labels + `',
-				   '` + l3v.VPNRD + `', ` + strconv.FormatInt(int64(l3v.VPNRDType), 10) + `,
-				   ` + strconv.FormatInt(int64(l3v.PathID), 10) + `,
-				   ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `,
-				   ` + strconv.FormatBool(l3v.IsAdjRIBInPost) + `,
-				   ` + strconv.FormatBool(l3v.IsAdjRIBOutPost) + `,
-				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `',
+			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp) 
+			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `', 
+			           '` + l3v.RouterIP + `', '` + l3v.BaseAttributes + `', '` + l3v.PeerHash + `', 
+				   '` + l3v.PeerIP + `', ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, '` + l3v.Prefix + `', 
+				   ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + `, 
+				   ` + strconv.FormatBool(l3v.IsIPv4) + `, '` + l3v.Nexthop + `', 
+				   ` + strconv.FormatBool(l3v.IsNexthopIPv4) + `, '` + l3v.Labels + `', 
+				   '` + l3v.VPNRD + `', ` + strconv.FormatInt(int64(l3v.VPNRDType), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.PathID), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `, 
+				   ` + strconv.FormatBool(l3v.IsAdjRIBInPost) + `, 
+				   ` + strconv.FormatBool(l3v.IsAdjRIBOutPost) + `, 
+				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `', 
 				   '` + str2TS(l3v.Timestamp) + `',  now())`
 
 	if glog.V(6) {
@@ -71,7 +79,7 @@ func (ba *BaseAttributesS) searchBaseAttrByHash_HistPG(h string) bool {
 	var (
 		base_attr_hash string
 	)
-	q0 := `select base_attr_hash
+	q0 := `select base_attr_hash 
 			       from base_attrs where base_attr_hash like '` + h + `'`
 	if glog.V(6) {
 		glog.Infof("SQL -> %s\n", q0)
@@ -103,22 +111,22 @@ func (ba *BaseAttributesS) insertBaseAttr_HistPG() {
 	if ba.searchBaseAttrByHash_HistPG(ba.BaseAttrHash) {
 		return
 	}
-	q0 := `insert into base_attrs(base_attr_hash, origin, as_path, as_path_count, nexthop,
-				      med, local_pref, is_atomic_agg, aggregator, community_list,
-				      originator_id, cluster_list, ext_community_list, as4_path,
-				      as4_path_count, as4_aggregator, tunnel_encap_attr,
+	q0 := `insert into base_attrs(base_attr_hash, origin, as_path, as_path_count, nexthop, 
+				      med, local_pref, is_atomic_agg, aggregator, community_list, 
+				      originator_id, cluster_list, ext_community_list, as4_path, 
+				      as4_path_count, as4_aggregator, tunnel_encap_attr, 
 				      large_community_list, stimestamp, rtimestamp, ltimestamp)
-				      values(` + `'` + ba.BaseAttrHash + `', '` + ba.Origin + `',
+				      values(` + `'` + ba.BaseAttrHash + `', '` + ba.Origin + `', 
 				      	    '` + ba.ASPath + `', ` + strconv.FormatInt(int64(ba.ASPathCount), 10) + `,
-					    '` + ba.Nexthop + `', ` + strconv.FormatInt(int64(ba.MED), 10) + `,
-					    ` + strconv.FormatInt(int64(ba.LocalPref), 10) + `,
-					    ` + strconv.FormatBool(ba.IsAtomicAgg) + `,
-					    '` + `', '` + ba.CommunityList + `',
-					    '` + ba.OriginatorID + `', '` + ba.ClusterList + `',
-					    '` + ba.ExtCommunityList + `', '` + ba.AS4Path + `',
-					    ` + strconv.FormatInt(int64(ba.AS4PathCount), 10) + `,
-					    '` + ba.AS4Aggregator + `',
-					    '` + ba.TunnelEncapAttr + `', '` + ba.LgCommunityList + `',
+					    '` + ba.Nexthop + `', ` + strconv.FormatInt(int64(ba.MED), 10) + `, 
+					    ` + strconv.FormatInt(int64(ba.LocalPref), 10) + `, 
+					    ` + strconv.FormatBool(ba.IsAtomicAgg) + `, 
+					    '` + `', '` + ba.CommunityList + `', 
+					    '` + ba.OriginatorID + `', '` + ba.ClusterList + `', 
+					    '` + ba.ExtCommunityList + `', '` + ba.AS4Path + `', 
+					    ` + strconv.FormatInt(int64(ba.AS4PathCount), 10) + `, 
+					    '` + ba.AS4Aggregator + `', 
+					    '` + ba.TunnelEncapAttr + `', '` + ba.LgCommunityList + `', 
 					    '` + ba.Timestamp + `', '` + str2TS(ba.Timestamp) + `',  now())`
 	if glog.V(6) {
 		glog.Infof("SQL -> %s\n", q0)
@@ -167,9 +175,9 @@ func (l3v *L3VPNPrefixS) insertPeer_HistPG() {
 		return
 	}
 	q0 := `insert into peers (peer_hash, peer_ip, peer_type, peer_asn, stimestamp, rtimestamp, ltimestamp)
-				values('` + l3v.PeerHash + `', '` + l3v.PeerIP + `',
-				       ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `,
-				       ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `,
+				values('` + l3v.PeerHash + `', '` + l3v.PeerIP + `', 
+				       ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `, 
+				       ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, 
 				       '` + l3v.Timestamp + `', '` + str2TS(l3v.Timestamp) + `',  now())`
 	if glog.V(6) {
 		glog.Infof("SQL -> %s\n", q0)
@@ -259,14 +267,17 @@ func updL3VPNV4_HistPG(l3vpnPfx *bmp_message.L3VPNPrefix, l3v L3VPNPrefixS, bas 
 	l3v.insertL3VPNV4_HistPG()
 }
 
+/*
+ CurrPG
+*/
 
 func (l3v *L3VPNPrefixS) searchIdByPfx_CurrPG() (id int) {
-	q0 := `select l.id from l3vpnv4_curr l, base_attrs b
-	      where l.base_attr_hash = b.base_attr_hash
-	      and prefix like '` + l3v.Prefix + `'
-	      and prefix_len = ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + `
-	      and vpn_rd like '` + l3v.VPNRD + `'
-	      and router_id like '` + l3v.RouterID + `'
+	q0 := `select l.id from l3vpnv4_curr l, base_attrs b 
+	      where l.base_attr_hash = b.base_attr_hash 
+	      and prefix like '` + l3v.Prefix + `' 
+	      and prefix_len = ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + ` 
+	      and vpn_rd like '` + l3v.VPNRD + `' 
+	      and router_id like '` + l3v.RouterID + `' 
 	      and peer_ip like '` + l3v.PeerIP + `'`
 	if glog.V(6) {
 		glog.Infof("SQL -> %s\n", q0)
@@ -304,24 +315,24 @@ func (l3v *L3VPNPrefixS) searchIdByPfx_CurrPG() (id int) {
 	return id
 }
 func (l3v *L3VPNPrefixS) insertL3VPNV4_CurrPG() {
-	q0 := `insert into l3vpnV4_curr(action, router_id, router_hash, router_ip, base_attr_hash,
+	q0 := `insert into l3vpnV4_curr(action, router_id, router_hash, router_ip, base_attr_hash, 
 			    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
 			    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
 			    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
-			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp)
-			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `',
-			           '` + l3v.RouterIP + `', '` + l3v.BaseAttributes + `', '` + l3v.PeerHash + `',
-				   '` + l3v.PeerIP + `', ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `,
-				   ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, '` + l3v.Prefix + `',
-				   ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + `,
-				   ` + strconv.FormatBool(l3v.IsIPv4) + `, '` + l3v.Nexthop + `',
-				   ` + strconv.FormatBool(l3v.IsNexthopIPv4) + `, '` + l3v.Labels + `',
-				   '` + l3v.VPNRD + `', ` + strconv.FormatInt(int64(l3v.VPNRDType), 10) + `,
-				   ` + strconv.FormatInt(int64(l3v.PathID), 10) + `,
-				   ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `,
-				   ` + strconv.FormatBool(l3v.IsAdjRIBInPost) + `,
-				   ` + strconv.FormatBool(l3v.IsAdjRIBOutPost) + `,
-				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `',
+			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp) 
+			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `', 
+			           '` + l3v.RouterIP + `', '` + l3v.BaseAttributes + `', '` + l3v.PeerHash + `', 
+				   '` + l3v.PeerIP + `', ` + strconv.FormatInt(int64(l3v.PeerType), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.PeerASN), 10) + `, '` + l3v.Prefix + `', 
+				   ` + strconv.FormatInt(int64(l3v.PrefixLen), 10) + `, 
+				   ` + strconv.FormatBool(l3v.IsIPv4) + `, '` + l3v.Nexthop + `', 
+				   ` + strconv.FormatBool(l3v.IsNexthopIPv4) + `, '` + l3v.Labels + `', 
+				   '` + l3v.VPNRD + `', ` + strconv.FormatInt(int64(l3v.VPNRDType), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.PathID), 10) + `, 
+				   ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `, 
+				   ` + strconv.FormatBool(l3v.IsAdjRIBInPost) + `, 
+				   ` + strconv.FormatBool(l3v.IsAdjRIBOutPost) + `, 
+				   ` + strconv.FormatBool(l3v.IsLocRIBFiltered) + `, '` + l3v.Timestamp + `', 
 				   '` + str2TS(l3v.Timestamp) + `',  now())`
 
 	if glog.V(6) {
@@ -333,25 +344,23 @@ func (l3v *L3VPNPrefixS) insertL3VPNV4_CurrPG() {
 		log.Fatal(err)
 	}
 }
-*/
 
-//func (l3v *L3VPNPrefixS) updateL3VPNV4_CurrPG(id int) {
-/*
-	q0 := `update l3vpnV4_curr set action, router_id, router_hash, router_ip, base_attr_hash,
-			    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
-			    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
-			    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
-			    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp)
-			    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `',
-*/
-/*
-	q0 := `update l3vpnV4_curr set  base_attr_hash = '` + l3v.BaseAttributes + `',
-			    nexthop = '` + l3v.Nexthop + `',
-			    labels = '` + l3v.Labels + `',
-			    path_id = ` + strconv.FormatInt(int64(l3v.PathID), 10) + `,
-			    origin_as = ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `,
-			    stimestamp = '` + l3v.Timestamp + `',
-			    rtimestamp = '` + str2TS(l3v.Timestamp) + `',
+func (l3v *L3VPNPrefixS) updateL3VPNV4_CurrPG(id int) {
+	/*
+		q0 := `update l3vpnV4_curr set action, router_id, router_hash, router_ip, base_attr_hash,
+				    peer_hash, peer_ip, peer_type, peer_asn, prefix, prefix_len,
+				    is_ipv4, nexthop, is_nexthop_ipv4, labels, vpn_rd, vpn_rd_type,
+				    path_id, origin_as, is_adj_rib_in_post_policy, is_adj_rib_out_post_policy,
+				    is_loc_rib_filtered, stimestamp, rtimestamp, ltimestamp)
+				    values(` + `'` + l3v.Action + `', '` + l3v.RouterID + `', '` + l3v.RouterHash + `',
+	*/
+	q0 := `update l3vpnV4_curr set  base_attr_hash = '` + l3v.BaseAttributes + `', 
+			    nexthop = '` + l3v.Nexthop + `', 
+			    labels = '` + l3v.Labels + `', 
+			    path_id = ` + strconv.FormatInt(int64(l3v.PathID), 10) + `, 
+			    origin_as = ` + strconv.FormatInt(int64(l3v.OriginAS), 10) + `, 
+			    stimestamp = '` + l3v.Timestamp + `', 
+			    rtimestamp = '` + str2TS(l3v.Timestamp) + `',  
 			    ltimestamp = now() where id = ` + strconv.FormatInt(int64(id), 10)
 
 	if glog.V(6) {
@@ -467,5 +476,3 @@ type BaseAttributesS struct {
 	// AttrSet
 	Timestamp string //            `json:"timestamp,omitempty"
 }
-
-*/
