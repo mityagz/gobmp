@@ -115,6 +115,8 @@ func (s *store) UnicastPrefixMsgPG(topic *kafka.TopicDescriptor, done chan struc
 
 }
 func (s *store) UnicastPrefixV4MsgPG(topic *kafka.TopicDescriptor, done chan struct{}, workersErrChan chan error) {
+	upS := UnicastPrefixS{}
+	baS := BaseAttributesS{}
 	for {
 		select {
 		case <-s.stopCh:
@@ -131,6 +133,10 @@ func (s *store) UnicastPrefixV4MsgPG(topic *kafka.TopicDescriptor, done chan str
 			if u.IsEOR {
 				continue
 			}
+			upS = UnicastPrefixS{}
+			baS = BaseAttributesS{}
+			updUnicastPrefixV4_HistPG(u, upS, baS)
+			updUnicastPrefixV4_CurrPG(u, upS, baS)
 			if glog.V(6) {
 				glog.Infof("Store received message from topic type: %d -> %s\n", topic.TopicType, u)
 			}
