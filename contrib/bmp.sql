@@ -146,3 +146,68 @@ CREATE TABLE l3vpnV4_curr (
 
 -- select action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, l.rtimestamp, l.ltimestamp from l3vpnv4 l, base_attrs b where prefix like '62.192.1.225' and l.base_attr_hash = b.base_attr_hash and vpn_rd like '%2054' and router_id like '10.229.134.0%' group by action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, l.rtimestamp, l.ltimestamp order by l.rtimestamp, l.ltimestamp;
 
+CREATE TABLE ucast_pfx (
+  	id SERIAL NOT NULL,
+        -- Sequence       int                 `json:"sequence,omitempty"`
+        -- Hash           string              `json:"hash,omitempty"`
+	action VARCHAR(255),					--":"add",
+	router_id VARCHAR(255), 				--":"10.229.132.0:52724:PE1:209"
+	router_hash VARCHAR(255),				--":"7c74731780fbc7fcc903929fe2e64ef8"
+	router_ip VARCHAR(255),					--":"10.49.4.1"
+	base_attr_hash VARCHAR(255),
+	peer_hash VARCHAR(255),					--":"b17f50eb425c66f7adc2b98afffb888b"
+	peer_ip VARCHAR(255),					--":"10.229.170.0"
+	peer_type INTEGER NOT NULL,				--":0
+	peer_asn INTEGER NOT NULL,				--":3333
+	prefix VARCHAR(255),					--":"62.192.1.30"
+	prefix_len INTEGER NOT NULL,				--":32
+	is_ipv4 BOOLEAN,					--":true
+	nexthop VARCHAR(255),					--":"10.229.4.0"
+	is_nexthop_ipv4 BOOLEAN,				--":true
+	labels VARCHAR(255),					--":[33]
+        -- PrefixSID      *prefixsid.PSid     `json:"prefix_sid,omitempty"`
+        path_id INTEGER,					--`json:"path_id,omitempty"`
+        origin_as INTEGER,					--`json:"origin_as,omitempty"`
+	is_adj_rib_in_post_policy BOOLEAN,			--":true
+	is_adj_rib_out_post_policy BOOLEAN,			--":false
+	is_loc_rib_filtered BOOLEAN,				--":false}
+	stimestamp  VARCHAR(255),				--":"2025-06-18T17:28:12Z"
+	rtimestamp timestamp with time zone,
+	ltimestamp timestamp with time zone,
+  	PRIMARY KEY(id, router_id, prefix, prefix_len),
+  	FOREIGN KEY (base_attr_hash) REFERENCES base_attrs (base_attr_hash),
+  	FOREIGN KEY (peer_hash) REFERENCES peers (peer_hash)
+);
+
+CREATE TABLE ucast_pfx_curr (
+  	id SERIAL NOT NULL,
+        -- Sequence       int                 `json:"sequence,omitempty"`
+        -- Hash           string              `json:"hash,omitempty"`
+	action VARCHAR(255),					--":"add",
+	router_id VARCHAR(255), 				--":"10.229.132.0:52724:PE1:209"
+	router_hash VARCHAR(255),				--":"7c74731780fbc7fcc903929fe2e64ef8"
+	router_ip VARCHAR(255),					--":"10.49.4.1"
+	base_attr_hash VARCHAR(255),
+	peer_hash VARCHAR(255),					--":"b17f50eb425c66f7adc2b98afffb888b"
+	peer_ip VARCHAR(255),					--":"10.229.170.0"
+	peer_type INTEGER NOT NULL,				--":0
+	peer_asn INTEGER NOT NULL,				--":3333
+	prefix VARCHAR(255),					--":"62.192.1.30"
+	prefix_len INTEGER NOT NULL,				--":32
+	is_ipv4 BOOLEAN,					--":true
+	nexthop VARCHAR(255),					--":"10.229.4.0"
+	is_nexthop_ipv4 BOOLEAN,				--":true
+	labels VARCHAR(255),					--":[33]
+        -- PrefixSID      *prefixsid.PSid     `json:"prefix_sid,omitempty"`
+        path_id INTEGER,					--`json:"path_id,omitempty"`
+        origin_as INTEGER,					--`json:"origin_as,omitempty"`
+	is_adj_rib_in_post_policy BOOLEAN,			--":true
+	is_adj_rib_out_post_policy BOOLEAN,			--":false
+	is_loc_rib_filtered BOOLEAN,				--":false}
+	stimestamp  VARCHAR(255),				--":"2025-06-18T17:28:12Z"
+	rtimestamp timestamp with time zone,
+	ltimestamp timestamp with time zone,
+  	PRIMARY KEY(id, router_id, vpn_rd, prefix, prefix_len),
+  	FOREIGN KEY (base_attr_hash) REFERENCES base_attrs (base_attr_hash),
+  	FOREIGN KEY (peer_hash) REFERENCES peers (peer_hash)
+);
