@@ -1,0 +1,176 @@
+/*
+
+select prefix, count(prefix) 
+from ucast_pfx l, base_attrs b 
+where l.base_attr_hash = b.base_attr_hash 
+group by  prefix order by count(prefix) desc;
+
+select action, prefix, count(prefix) 
+from ucast_pfx l, base_attrs b where l.base_attr_hash = b.base_attr_hash 
+group by action, prefix order by prefix, action;
+
+select action, router_id, count(prefix), l.nexthop, peer_ip, cluster_list, ext_community_list, community_list, l.rtimestamp, l.ltimestamp 
+from ucast_pfx l, base_attrs b where l.base_attr_hash = b.base_attr_hash  
+group by action, router_id, prefix, peer_ip, cluster_list, ext_community_list, community_list, 
+l.rtimestamp, l.ltimestamp, l.nexthop order by l.ltimestamp, l.rtimestamp;
+
+select action, router_id,  prefix, l.nexthop, peer_ip, cluster_list, ext_community_list, community_list, l.rtimestamp, l.ltimestamp 
+from ucast_pfx l, base_attrs b 
+where prefix like '62.192.1.75' 
+and l.base_attr_hash = b.base_attr_hash 
+group by action, router_id, prefix, peer_ip, cluster_list, ext_community_list, 
+community_list, l.rtimestamp, l.ltimestamp, l.nexthop order by l.ltimestamp, l.rtimestamp;
+
+select action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, community_list, l.rtimestamp, l.ltimestamp 
+from l3vpnv4_curr l, base_attrs b 
+where prefix like '62.192.1.75' 
+and l.base_attr_hash = b.base_attr_hash 
+and vpn_rd like '%2054' and router_id like '10.229.134.0%' 
+group by action, router_id, vpn_rd, prefix, peer_ip, cluster_list, ext_community_list, 
+community_list, l.rtimestamp, l.ltimestamp order by l.ltimestamp, l.rtimestamp;
+
+*/
+
+-- 1. How many routes per vrf were announced.
+-- 2. How many routes per vrf were withrawn.
+ select l.peer_ip, l.action, count(l.action) 
+ from ucast_pfx l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash 
+ and (peer_ip like '10.233.24_.131' or peer_ip like '10.233.24_.129') 
+ group by l.action, l.peer_ip ;
+
+/*
+    peer_ip     | action | count 
+----------------+--------+-------
+ 10.233.240.131 | add    |  1054
+ 10.233.241.131 | add    |  1052
+ 10.233.241.129 | add    |   850
+ 10.233.240.129 | add    |   855
+ 10.233.240.131 | del    |   584
+ 10.233.241.131 | del    |   584
+ 10.233.240.129 | del    |   556
+ 10.233.241.129 | del    |   555
+(8 строк)
+
+*/
+
+-- 3. How many prefixes per vrf.
+ select vpn_rd, count(vpn_rd) 
+ from l3vpnv4_curr l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash 
+ and vpn_rd like '%205%' group by vpn_rd;
+ select l.peer_ip, count(l.peer_ip) from ucast_pfx_curr l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash 
+ and community_list like '%3333:38%' 
+ and (peer_ip like '10.233.24_.131' or peer_ip like '10.233.24_.129') 
+ group by l.peer_ip order by  peer_ip;
+
+/*
+
+    peer_ip     | count 
+----------------+-------
+ 10.233.240.129 |    28
+ 10.233.240.131 |    23
+ 10.233.241.129 |    33
+ 10.233.241.131 |    27
+(4 строки)
+
+*/
+ 
+-- 3.1. How many prefixes per asbr.
+ select l.router_id, l.peer_ip, count(community_list) 
+ from ucast_pfx_curr l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash and community_list like '%3333:38%' 
+ and (peer_ip like '10.233.241.131' or peer_ip like '10.233.241.129') 
+ group by l.router_id, l.peer_ip order by  peer_ip;
+
+/*
+
+       router_id       |    peer_ip     | count 
+----------------------+----------------+-------
+ 10.229.4.0:PE0:215   | 10.233.241.129 |    32
+ 10.229.132.0:PE1:209 | 10.233.241.131 |    27
+(2 строки)
+
+
+*/
+
+-- 4. How many prefixes per SP.
+ select l.router_id, l.peer_ip, community_list, count(community_list) 
+ from ucast_pfx_curr l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash 
+ and community_list like '%3333:38%' 
+ and (peer_ip like '10.233.241.131' or peer_ip like '10.233.241.129') 
+ group by l.router_id, l.peer_ip, community_list order by  peer_ip;        
+
+/*
+
+      router_id       |    peer_ip     |                community_list                | count 
+----------------------+----------------+----------------------------------------------+-------
+ 10.229.4.0:PE0:215   | 10.233.241.129 |  3333:10300 3333:31990 3333:32990 3333:38020 |    14
+ 10.229.4.0:PE0:215   | 10.233.241.129 |  3333:10300 3333:31990 3333:32990 3333:38040 |     8
+ 10.229.4.0:PE0:215   | 10.233.241.129 |  3333:10300 3333:31990 3333:32990 3333:38080 |    10
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38050 |     9
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38070 |     7
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38090 |     4
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38100 |     7
+(7 строк)
+
+*/
+
+-- 5. How many prefixes per vrf per SP.
+ select l.router_id, l.peer_ip, community_list, count(community_list) 
+ from ucast_pfx_curr l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash 
+ and community_list like '%3333:38%' 
+ and (peer_ip like '10.233.24_.131' or peer_ip like '10.233.24_.129') 
+ group by l.router_id, l.peer_ip, community_list order by  peer_ip;
+
+/*
+
+      router_id       |    peer_ip     |                community_list                | count 
+----------------------+----------------+----------------------------------------------+-------
+ 10.229.4.0:PE0:215   | 10.233.240.129 |  3333:10300 3333:31990 3333:32990 3333:38020 |     8
+ 10.229.4.0:PE0:215   | 10.233.240.129 |  3333:10300 3333:31990 3333:32990 3333:38040 |    12
+ 10.229.4.0:PE0:215   | 10.233.240.129 |  3333:10300 3333:31990 3333:32990 3333:38080 |    12
+ 10.229.132.0:PE1:209 | 10.233.240.131 |  3333:10300 3333:31990 3333:32990 3333:38050 |     7
+ 10.229.132.0:PE1:209 | 10.233.240.131 |  3333:10300 3333:31990 3333:32990 3333:38070 |     3
+ 10.229.132.0:PE1:209 | 10.233.240.131 |  3333:10300 3333:31990 3333:32990 3333:38090 |     8
+ 10.229.132.0:PE1:209 | 10.233.240.131 |  3333:10300 3333:31990 3333:32990 3333:38100 |     3
+ 10.229.4.0:PE0:215   | 10.233.241.129 |  3333:10300 3333:31990 3333:32990 3333:38020 |    11
+ 10.229.4.0:PE0:215   | 10.233.241.129 |  3333:10300 3333:31990 3333:32990 3333:38040 |    10
+ 10.229.4.0:PE0:215   | 10.233.241.129 |  3333:10300 3333:31990 3333:32990 3333:38080 |    16
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38050 |    10
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38070 |     8
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38090 |     3
+ 10.229.132.0:PE1:209 | 10.233.241.131 |  3333:10300 3333:31990 3333:32990 3333:38100 |     6
+(14 строк)
+
+/*
+
+-- 7. Most unstable prefixes per vrf per SP.
+
+ select l.router_id, l.peer_ip, concat(prefix, '/', prefix_len), count(action) 
+ from ucast_pfx l, base_attrs b 
+ where l.base_attr_hash = b.base_attr_hash and community_list like '%3333:38%' 
+ and (peer_ip like '10.233.241.131' or peer_ip like '10.233.241.129') 
+ and l.ltimestamp > '2025-07-19' group by l.router_id, l.peer_ip, concat(prefix, '/', prefix_len) 
+ order by  peer_ip, count(action) desc limit 10;
+
+/*
+
+     router_id      |    peer_ip     |     concat      | count 
+--------------------+----------------+-----------------+-------
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.83/32  |    40
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.193/32 |    40
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.217/32 |    39
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.113/32 |    36
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.41/32  |    35
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.225/32 |    34
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.177/32 |    32
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.26/32  |    32
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.107/32 |    32
+ 10.229.4.0:PE0:215 | 10.233.241.129 | 62.192.1.75/32  |    32
+(10 строк)
+
+*/
