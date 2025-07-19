@@ -221,7 +221,9 @@ func (ups *UnicastPrefixS) ucastPfx2S(upp bmp_message.UnicastPrefix) {
 
 }
 
-func updUnicastPrefixV4_HistPG(uPfx *bmp_message.UnicastPrefix, ups UnicastPrefixS, bas BaseAttributesS) {
+func updUnicastPrefixV4_HistPG(uPfx *bmp_message.UnicastPrefix, upss UnicastPrefixS, bass BaseAttributesS) {
+	ups := UnicastPrefixS{}
+	bas := BaseAttributesS{}
 	bas.baseAttrUcastPfx2S(*uPfx)
 	ups.ucastPfx2S(*uPfx)
 
