@@ -200,7 +200,7 @@ community_list, l.rtimestamp, l.ltimestamp order by l.ltimestamp, l.rtimestamp;
 
 */
 
-8. All prefixes:
+-- 8. All prefixes:
 
  select l.ltimestamp, l.action, l.router_id, l.peer_ip, concat(prefix, '/', prefix_len), b.nexthop, b.as_path, b.community_list 
  from ucast_pfx l, base_attrs b where (l.base_attr_hash = b.base_attr_hash) 
@@ -255,5 +255,43 @@ community_list, l.rtimestamp, l.ltimestamp order by l.ltimestamp, l.rtimestamp;
  2025-07-19 00:04:05.317786+05 | add    | 10.229.132.0:PE1:209 | 10.233.241.131 | 62.192.1.185/32 | 198.51.0.25 |         |  3333:10300 3333:31990 3333:32990 3333:380
 50
 ...
+
+*/
+
+-- 9. History of given prefix:
+
+ select l.ltimestamp, l.action, l.router_id, l.peer_ip, concat(prefix, '/', prefix_len), b.nexthop, b.as_path, b.community_list 
+ from ucast_pfx l, base_attrs b where (l.base_attr_hash = b.base_attr_hash) 
+ and concat(prefix, '/', prefix_len) like '62.192.1.75/32' 
+ and community_list like '%3333:38%' 
+ and (peer_ip like '10.233.241.131' or peer_ip like '10.233.241.129') 
+ and l.ltimestamp > '2025-07-19' 
+ union all select l.ltimestamp, l.action, l.router_id, l.peer_ip, concat(prefix, '/', prefix_len), b.nexthop, b.as_path, b.community_list 
+ from ucast_pfx l, base_attrs b where (l.base_attr_hash = b.base_attr_hash) 
+ and concat(prefix, '/', prefix_len) like '62.192.1.75/32' 
+ and (peer_ip like '10.233.241.131' or peer_ip like '10.233.241.129') 
+ and l.ltimestamp > '2025-07-19' order  by ltimestamp;
+
+/*
+
+ ltimestamp           | action |      router_id       |    peer_ip     |     concat     |   nexthop   | as_path |                community_list              
+  
+-------------------------------+--------+----------------------+----------------+----------------+-------------+---------+--------------------------------------------
+--
+ 2025-07-19 00:15:01.954651+05 | add    | 10.229.4.0:PE0:215   | 10.233.241.129 | 62.192.1.75/32 | 198.51.0.1  |         |  3333:10300 3333:31990 3333:32990 3333:3802
+0
+ 2025-07-19 00:15:01.954651+05 | add    | 10.229.4.0:PE0:215   | 10.233.241.129 | 62.192.1.75/32 | 198.51.0.1  |         |  3333:10300 3333:31990 3333:32990 3333:3802
+0
+ 2025-07-19 00:25:57.176337+05 | add    | 10.229.4.0:PE0:215   | 10.233.241.129 | 62.192.1.75/32 | 198.51.0.31 |         |  3333:10300 3333:31990 3333:32990 3333:3808
+0
+ 2025-07-19 00:25:57.176337+05 | add    | 10.229.4.0:PE0:215   | 10.233.241.129 | 62.192.1.75/32 | 198.51.0.31 |         |  3333:10300 3333:31990 3333:32990 3333:3808
+0
+ 2025-07-19 00:36:57.970654+05 | del    | 10.229.4.0:PE0:215   | 10.233.241.129 | 62.192.1.75/32 |             |         | 
+ 2025-07-19 00:36:58.560231+05 | add    | 10.229.132.0:PE1:209 | 10.233.241.131 | 62.192.1.75/32 | 198.51.0.35 |         |  3333:10300 3333:31990 3333:32990 3333:3810
+0
+ 2025-07-19 00:36:58.560231+05 | add    | 10.229.132.0:PE1:209 | 10.233.241.131 | 62.192.1.75/32 | 198.51.0.35 |         |  3333:10300 3333:31990 3333:32990 3333:3810
+0
+ 2025-07-19 00:47:55.278837+05 | add    | 10.229.132.0:PE1:209 | 10.233.241.131 | 62.192.1.75/32 | 198.51.0.25 |         |  3333:10300 3333:31990 3333:32990 3333:3805
+0
 
 */
